@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import co.uk.fluxanoia.graphics.Background;
 import co.uk.fluxanoia.graphics.Display;
 import co.uk.fluxanoia.main.AudioManager;
+import co.uk.fluxanoia.map.Trigger.MusicTransition;
 import co.uk.fluxanoia.util.Tween.TweenType;
 
 // The LoadingState, used as an opening for the game
@@ -61,7 +62,7 @@ public class LoadingState extends State {
 			return;
 		}
 		if (!wasLoaded) {
-			this.getDisplay().getAudioManager().playMusic(AudioManager.MENU_MUSIC);
+			this.getDisplay().getAudioManager().changeMusic(MusicTransition.SET, 0, AudioManager.MENU_MUSIC);
 			wasLoaded = true;
 		}
 		this.fore.update();

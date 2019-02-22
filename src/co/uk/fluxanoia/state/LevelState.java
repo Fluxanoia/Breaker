@@ -16,13 +16,14 @@ public class LevelState extends State {
         // Constructs the State
         super(stateManager, display);
         // Initialise values
-        terr = new Terrain(display, this.getStateManager().getGridBG());
+        terr = new Terrain(display, this.getStateManager().getCamera(), this.getStateManager().getGridBG());
         // Add components to the layer
         this.addComponent(Layer.FG, terr);
     }
 
     // Wakes the state
     public void wake() {
+    	this.getDisplay().getAudioManager().stopMusic();
         terr.loadLevel(getStateManager().getPassID());
     }
 

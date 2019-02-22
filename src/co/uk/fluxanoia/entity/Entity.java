@@ -13,7 +13,37 @@ public abstract class Entity extends Drawable {
 	
 	// Indexing of all the entities
 	public enum EntityIndex {
+		PROTAGONIST("protagonist");
+
+		private String id;
+		EntityIndex(String id) {
+			this.id = id;
+		}
+		public String getID() { return id; }
+		
+		// Returns the EntityIndex associated with the id
+		public static EntityIndex getIndex(String id) {
+			EntityIndex[] eis = EntityIndex.values();
+			for (int i = 0; i < eis.length; i++) {
+				if (id.equals(eis[i].getID())) return eis[i];
+			}
+			return null;
+		}
+		// Returns the entity associated with the index
+		public static Entity getEntity(String id, Display display, Terrain terrain, int x, int y) {
+			return getEntity(getIndex(id), display, terrain, x, y);
+		}
+		public static Entity getEntity(EntityIndex ei, Display display, Terrain terrain, int x, int y) {
+			if (ei == null) return null;
+			switch (ei) {
+			case PROTAGONIST:
+				return new Protagonist(display, terrain, x, y);
+			}
+			return null;
+		}
 	}
+	// The entity index of the entity
+	private EntityIndex entityIndex;
 	
 	// The display for the game
 	private Display display;
@@ -31,10 +61,11 @@ public abstract class Entity extends Drawable {
 	protected double x_vel, y_vel;
 	
 	// Constructs an entity
-	public Entity(Display display, Terrain terrain, int x, int y, int w, int h) {
+	public Entity(EntityIndex entityIndex, Display display, Terrain terrain, int x, int y, int w, int h) {
 		// Initialise values
 		this.x_vel = this.y_vel = 0;
 		// Assign values
+		this.entityIndex = entityIndex;
 		this.display = display;
 		this.terrain = terrain;
 		this.animator = new Animator();
@@ -55,8 +86,20 @@ public abstract class Entity extends Drawable {
 		boolean moved = false;
 		moved |= animator.update();
 		moved |= animator.dropMoved();
-		controller.update();
+		if (controller != null) controller.update();
 		return moved;
+	}
+	
+	// Updates the clip bounds of the entity
+	public void updateClip() {
+		Rectangle b = animator.getBounds(this.getHitbox());
+		if (b == null) b = this.getHitbox();
+		b = new Rectangle((int) b.getX() - 5,
+				(int) b.getY() - 5,
+				(int) b.getWidth() + 10,
+				(int) b.getHeight() + 10);
+		b.translate((int) -terrain.getCamera().getX(), (int) -terrain.getCamera().getY());
+		this.pushClipBounds(b);
 	}
 	
 	// Returns the bounds for the entity
@@ -77,6 +120,8 @@ public abstract class Entity extends Drawable {
 		this.controller = c;
 	}
 	
+	// Returns the entity index
+	public EntityIndex getEntityIndex() { return entityIndex; }
 	// Returns the display
 	public Display getDisplay() { return display; }
 	// Returns the terrain

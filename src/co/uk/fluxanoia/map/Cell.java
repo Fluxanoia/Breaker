@@ -13,6 +13,7 @@ public abstract class Cell {
 		TRIGGER("tri", "Trigger"),
 		TILE("til", "Tile"),
 		PLAYER_SPAWN("psw", "Player Spawn");
+		
 		private String id, name;
 		CellType(String id, String name) { 
 			this.id = id;

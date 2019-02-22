@@ -19,7 +19,7 @@ public class PlayerController extends Controller {
 	// Constructs a player controller
 	public PlayerController(Listener listener) {
 		// Construct the controller
-		super(listener);
+		super(ControllerType.PLAYER, listener);
 		// Initialise values
 		this.keymap = new HashMap<>();
 		this.mousemap = new HashMap<>();

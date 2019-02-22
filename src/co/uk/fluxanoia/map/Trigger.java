@@ -3,6 +3,8 @@ package co.uk.fluxanoia.map;
 import java.awt.Color;
 import java.awt.Rectangle;
 
+import co.uk.fluxanoia.control.Controller.ControllerType;
+import co.uk.fluxanoia.entity.Entity.EntityIndex;
 import co.uk.fluxanoia.graphics.Display;
 import javafx.geometry.Point2D;
 
@@ -15,10 +17,12 @@ public class Trigger extends Cell{
 	// Structure of data in files
 	// - Music
 		// TRANSITION_DURATION_PATH
+	// - Sound Effects
+		// PATH
 	// - Background
 		// R_G_B_FX_FY_BX_BY_OPACITY_DURATION
 	// - Entity
-		// TO BE ADDED
+		// INDEX_CONTROLLER
 	// - Camera
 		// MOVEMENT_VX_VY
 	
@@ -48,6 +52,7 @@ public class Trigger extends Cell{
 	// The effects of triggers
 	public enum TriggerEffect {
 		MUSIC("mus", "Music"), 
+		SFX("sfx", "Sound Effect"),
 		BACKGROUND("bkg", "Background"), 
 		ENTITY("ent", "Entity"), 
 		CAMERA("cam", "Camera");
@@ -70,7 +75,8 @@ public class Trigger extends Cell{
 	// The type of music change
 	public enum MusicTransition {
 		SET("set", "Set"), 
-		FADE("fad", "Fade"), 
+		FADE_IN("fin", "Fade in"),
+		FADE_OUT("fou", "Fade out"),
 		STOP("stp", "Stop");
 		private String id, name;
 		MusicTransition(String id, String name) { 
@@ -115,6 +121,10 @@ public class Trigger extends Cell{
 	private TriggerEffect effect;
 	
 	// The following may or may not be used depending on the trigger
+	// The index of the spawning entity
+	private EntityIndex entityIndex;
+	// The type of controller of the entity
+	private ControllerType entityController;
 	// The type of music transition
 	private MusicTransition musicTransition;
 	// The duration of the transition
@@ -158,6 +168,7 @@ public class Trigger extends Cell{
 		this.onscreen = false;
 		this.ready = false;
 		this.activated = false;
+		this.entityIndex = null;
 		this.musicTransition = null;
 		this.transitionDuration = -1;
 		this.musicPath = null;
@@ -174,12 +185,12 @@ public class Trigger extends Cell{
 	public void update() {
 		// Check the type
 		Rectangle player, bounds = this.getBounds();
-		if (!onscreen && bounds.intersects(display.getCamera().getBounds())) {
+		if (!onscreen && bounds.intersects(terrain.getCamera().getBounds())) {
 			onscreen = true;
 		}
 		switch (type) {
 		case OFFSCREEN:
-			if (!bounds.intersects(display.getCamera().getBounds()) && onscreen) {
+			if (!bounds.intersects(terrain.getCamera().getBounds()) && onscreen) {
 				ready = true;
 			}
 			break;
@@ -227,10 +238,15 @@ public class Trigger extends Cell{
 				terrain.pushCameraMode(cameraMovement, cameraScroll);
 				break;
 			case ENTITY:
-				// TO BE ADDED
+				Rectangle bounds = this.getBounds();
+				terrain.addEntity(entityIndex, ControllerType.getController(entityController, display.getListener()), 
+						(int) bounds.getCenterX(), (int) bounds.getCenterY());
 				break;
 			case MUSIC:
-				terrain.pushMusic(musicTransition, transitionDuration, musicPath);
+				display.getAudioManager().changeMusic(musicTransition, transitionDuration, musicPath);
+				break;
+			case SFX:
+				display.getAudioManager().playSFX(musicPath);
 				break;
 			}
 			return true;
@@ -283,7 +299,8 @@ public class Trigger extends Cell{
 			}
 			break;
 		case ENTITY:
-			// TO BE ADDED
+			if (split.length > 2) entityIndex = EntityIndex.getIndex(split[2]);
+			if (split.length > 3) entityController = ControllerType.getType(split[3]);
 			break;
 		case MUSIC:
 			if (split.length > 4) {
@@ -291,6 +308,9 @@ public class Trigger extends Cell{
 				transitionDuration = Integer.valueOf(split[3]);
 				musicPath = split[4];
 			}
+			break;
+		case SFX:
+			if (split.length > 2) musicPath = split[2];
 			break;
 		}
 	}
@@ -328,12 +348,18 @@ public class Trigger extends Cell{
 				}
 			}
 			break;
+		case SFX:
+			if (musicPath == null) break;
+			info += "Playing " + musicPath + "_";
+			break;
 		case ENTITY:
+			if (entityIndex != null) info += "Entity: " + entityIndex.getID() + "_";
+			if (entityController != null) info += "Controller: " + entityController.getID() + "_";
 			break;
 		case MUSIC:
 			if (musicTransition != null) {
 				info += "Transition of " + musicTransition.getName() + "_Lasting "
-						+ transitionDuration + "_To " + musicPath;
+						+ transitionDuration + "_To " + musicPath + "_";
 			}
 			break;
 		}
@@ -363,8 +389,15 @@ public class Trigger extends Cell{
 			if (musicPath == null) break;
 			data += "_" + musicPath;
 			break;
+		case SFX:
+			if (musicPath == null) break;
+			data += "_" + musicPath;
+			break;
 		case ENTITY:
-			// TO BE ADDED
+			if (entityIndex == null) break;
+			data += "_" + entityIndex.getID();
+			if (entityController == null) break;
+			data += "_" + entityController.getID();
 			break;
 		case CAMERA:
 			if (cameraMovement == null) break;

@@ -22,7 +22,7 @@ public class Protagonist extends GravityEntity {
 	
 	// Constructs a player
 	public Protagonist(Display display, Terrain terrain, int x, int y) {
-		super(display, terrain, x, y, 18, 34, 1.75, 0.4, 0.35, 7, 5, 9, 7, 0.8, 2);
+		super(EntityIndex.PROTAGONIST, display, terrain, x, y, 18, 34, 1.75, 0.4, 0.35, 7, 5, 9, 7, 0.8, 2);
 		this.getAnimator().setTiles(this.getDisplay().getResourceManager()
 				.getImage("res\\sprites\\protagonist.png"));
 		this.getAnimator().setTileDimensions(new Dimension(40, 40));
@@ -78,19 +78,12 @@ public class Protagonist extends GravityEntity {
 			}
 		}
 		// Update the clip if necessary
-		if (updateClip) {
-			Rectangle b = this.getAnimator().getBounds(this.getHitbox());
-			if (b == null) b = this.getHitbox();
-			this.pushClipBounds(new Rectangle((int) b.getX() - 5,
-					(int) b.getY() - 5,
-					(int) b.getWidth() + 10,
-					(int) b.getHeight() + 10));
-		}
+		if (updateClip) updateClip();
 	}
 
 	// Draws the player
 	public void draw(Graphics2D g) {
-		this.getAnimator().drawImage(g, this.getDisplay().getCamera(), this.getHitbox(), this.flip);
+		this.getAnimator().drawImage(g, this.getTerrain().getCamera(), this.getHitbox(), this.flip);
 		if (!SHOW_BOXES) return;
 		Rectangle a_box = this.getAnimator().getBounds(this.getHitbox());
 		Rectangle h_box = this.getHitbox();
@@ -98,10 +91,10 @@ public class Protagonist extends GravityEntity {
 				(int) a_box.getY() - 5,
 				(int) a_box.getWidth() + 10,
 				(int) a_box.getHeight() + 10);
-		a_box.translate((int) -this.getDisplay().getCamera().getX(),
-				(int) -this.getDisplay().getCamera().getY());
-		h_box.translate((int) -this.getDisplay().getCamera().getX(),
-				(int) -this.getDisplay().getCamera().getY());
+		a_box.translate((int) -this.getTerrain().getCamera().getX(),
+				(int) -this.getTerrain().getCamera().getY());
+		h_box.translate((int) -this.getTerrain().getCamera().getX(),
+				(int) -this.getTerrain().getCamera().getY());
 		g.setColor(Color.ORANGE);
 		g.draw(a_box);
 		g.setColor(Color.GREEN);

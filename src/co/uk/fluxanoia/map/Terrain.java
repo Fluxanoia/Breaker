@@ -8,16 +8,17 @@ import java.util.ArrayList;
 
 import com.sun.glass.events.KeyEvent;
 
+import co.uk.fluxanoia.control.Controller;
 import co.uk.fluxanoia.control.Controller.InputType;
 import co.uk.fluxanoia.control.PlayerController;
-import co.uk.fluxanoia.entity.Protagonist;
+import co.uk.fluxanoia.entity.Entity;
+import co.uk.fluxanoia.entity.Entity.EntityIndex;
 import co.uk.fluxanoia.graphics.Display;
 import co.uk.fluxanoia.graphics.Drawable;
 import co.uk.fluxanoia.graphics.GridBackground;
 import co.uk.fluxanoia.main.Main;
 import co.uk.fluxanoia.main.ResourceManager;
 import co.uk.fluxanoia.map.Trigger.CameraMovement;
-import co.uk.fluxanoia.map.Trigger.MusicTransition;
 import co.uk.fluxanoia.util.Tween.TweenType;
 import javafx.geometry.Point2D;
 
@@ -35,8 +36,12 @@ public class Terrain extends Drawable {
 	private PlayerSpawn playerSpawn;
 
 	// The player
-	private Protagonist player;
+	private Entity player;
+	// The entities barring the player
+	private ArrayList<Entity> entities;
 
+	// The camera
+	private Camera camera;
 	// The display of the game
 	private Display display;
 	// The background for the game
@@ -48,13 +53,15 @@ public class Terrain extends Drawable {
 	private BufferedImage tileset, empty;
 
 	// Constructs a GameGrid
-	public Terrain(Display display, GridBackground gbg) {
+	public Terrain(Display display, Camera camera, GridBackground gbg) {
 		// Assign values
 		this.gridBackground = gbg;
+		this.camera = camera;
 		this.display = display;
 		// Initialise values
 		this.tiles = new ArrayList<>();
 		this.triggers = new ArrayList<>();
+		this.entities = new ArrayList<>();
 		this.playerSpawn = null;
 		this.player = null;
 		this.empty = display.getResourceManager()
@@ -78,10 +85,10 @@ public class Terrain extends Drawable {
 			if (c instanceof PlayerSpawn) playerSpawn = (PlayerSpawn) c;
 		}
 		// Set up the camera
-		display.getCamera().setPosition(0, 0, Main.DRAW_WIDTH, Main.DRAW_HEIGHT);
+		camera.setPosition(0, 0, Main.DRAW_WIDTH, Main.DRAW_HEIGHT);
 		this.cameraMode = CameraMovement.FOLLOW;
 		// Set up the player
-		player = new Protagonist(display, this,
+		player = EntityIndex.getEntity(playerSpawn.getEntityIndex(), display, this,
 				playerSpawn.getX() + Terrain.GRID_SIZE / 2,
 				playerSpawn.getY() + Terrain.GRID_SIZE / 2);
 		PlayerController c = new PlayerController(display.getListener());
@@ -96,25 +103,34 @@ public class Terrain extends Drawable {
 
 	// Updates the grid
 	public void update() {
+		// Update the player
 		player.update();
 		this.pushClipBounds(player.dropClipBounds());
+		// Update entities
+		Rectangle cb;
+		for (Entity e : new ArrayList<Entity>(entities)) {
+			e.update();
+			cb = e.dropClipBounds();
+			if (cb.intersects(Display.drawBounds())) this.pushClipBounds(cb);
+		}
+		// Update the camera
 		double x, y;
 		switch (cameraMode) {
 		case FOLLOW:
-			x = player.getHitbox().getCenterX() - display.getCamera().getWidth() / 2;
-			y = player.getHitbox().getCenterY() - display.getCamera().getHeight() / 2;
+			x = player.getHitbox().getCenterX() - camera.getWidth() / 2;
+			y = player.getHitbox().getCenterY() - camera.getHeight() / 2;
 			if (x < 0) x = 0;
 			if (y < 0) y = 0;
-			if (display.getCamera().getTweenX().getDestination() != x) {
-				display.getCamera().getTweenX().move(TweenType.EASE_OUT, x, 5, 0);
+			if (camera.getTweenX().getDestination() != x) {
+				camera.getTweenX().move(TweenType.EASE_OUT, x, 5, 0);
 			}
-			if (display.getCamera().getTweenY().getDestination() != y) {
-				display.getCamera().getTweenY().move(TweenType.EASE_OUT, y, 5, 0);
+			if (camera.getTweenY().getDestination() != y) {
+				camera.getTweenY().move(TweenType.EASE_OUT, y, 5, 0);
 			}
 			break;
 		case SCROLL:
-			display.getCamera().getTweenX().set(display.getCamera().getX() + cameraScroll.getX());
-			display.getCamera().getTweenY().set(display.getCamera().getY() + cameraScroll.getY());
+			camera.getTweenX().set(camera.getX() + cameraScroll.getX());
+			camera.getTweenY().set(camera.getY() + cameraScroll.getY());
 			break;
 		case STATIC:
 			break;
@@ -128,12 +144,15 @@ public class Terrain extends Drawable {
 
 	// Draws the grid
 	public void draw(Graphics2D g) {
-		Rectangle r = display.getCamera().getBounds();
+		Rectangle r = camera.getBounds();
 		for (Tile t : new ArrayList<Tile>(tiles)) {
 			t.draw(g, r, ResourceManager.getTile(tileset, empty,
 					t.getTextureX(), t.getTextureY(), Terrain.GRID_SIZE));
 		}
 		if (player != null) player.draw(g);
+		for (Entity e : new ArrayList<Entity>(entities)) {
+			e.draw(g);
+		}
 	}
 	
 	// Pushes a background change
@@ -150,11 +169,19 @@ public class Terrain extends Drawable {
 		this.cameraScroll = scroll;
 	}
 	
-	// Pushes a music change
-	public void pushMusic(MusicTransition musicTransition, int duration, String path) {
-		
+	// Adds an entity
+	public void addEntity(EntityIndex ei, Controller c, int x, int y) {
+		Entity e = EntityIndex.getEntity(ei, display, this, x, y);
+		if (e == null) return;
+		e.setController(c);
+		entities.add(e);
 	}
 
+	// Returns the camera
+	public Camera getCamera() {
+		return camera;
+	}
+	
 	// Returns the tiles
 	public ArrayList<Tile> getTiles() {
 		return tiles;

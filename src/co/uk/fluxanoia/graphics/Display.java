@@ -18,7 +18,6 @@ import co.uk.fluxanoia.main.GameMode;
 import co.uk.fluxanoia.main.Listener;
 import co.uk.fluxanoia.main.Main;
 import co.uk.fluxanoia.main.ResourceManager;
-import co.uk.fluxanoia.map.Camera;
 import co.uk.fluxanoia.map.MapTool;
 import co.uk.fluxanoia.state.StateManager;
 
@@ -37,8 +36,6 @@ public class Display extends JPanel {
 	private GameMode mode;
 	// Whether the display is running or not
 	private boolean running;
-	// The camera
-	private Camera camera;
 	// The drawing image
 	private BufferedImage drawImage;
 	
@@ -83,8 +80,6 @@ public class Display extends JPanel {
 		this.addMouseListener(this.listener);
 		this.addMouseMotionListener(this.listener);
 		this.addMouseWheelListener(this.listener);
-		// Create the camera
-		this.camera = new Camera(0, 0, Main.DRAW_WIDTH, Main.DRAW_HEIGHT);
 		// Check the mode
 		if (mode == null) {
 			System.err.println("The selected mode of value: " + Main.MODE + ", could not be initialised.");
@@ -95,7 +90,6 @@ public class Display extends JPanel {
 	// Updates the Display
 	public void update() {
 		// Updates the state manager and checks if it's closed
-		this.camera.update();
 		this.mode.update();
 		if (this.mode.isClosed()) {
 			running = false;
@@ -117,30 +111,19 @@ public class Display extends JPanel {
 	public void paint(Graphics g1) {
 		// Call the super
 		super.paint(g1);
-		// If the camera is null, return
-		if (camera == null) return;
-		// Whether the screen must be fully redrawn
-		boolean full = camera.dropMoved();
+		// If there's no mode, return
+		if (mode == null) return;
 		// Create the draw image
-		if (drawImage == null || full) {
-			drawImage = new BufferedImage((int) Math.ceil(camera.getWidth()), 
-					(int) Math.ceil(camera.getHeight()),
+		if (drawImage == null) {
+			drawImage = new BufferedImage(Main.DRAW_WIDTH, Main.DRAW_HEIGHT,
 					BufferedImage.TYPE_INT_ARGB);
 		}
 		// Create a G2D object
 		Graphics2D g = (Graphics2D) drawImage.getGraphics();
 		// Set the clip bounds
-		Rectangle cb = mode.dropClipBounds();
-		if (full) cb = new Rectangle(0, 0, drawImage.getWidth(), drawImage.getHeight());
-		if (area(cb) == 0) {
-			g.dispose();
-			((Graphics2D) g1).drawImage(drawImage, 0, 0,
-					Main.WINDOW_WIDTH, Main.WINDOW_HEIGHT, Color.BLACK, null);
-			return;
-		}
-		g.setClip(cb);
+		g.setClip(mode.dropClipBounds());
 		// Draws the state manager
-		if (mode != null) this.mode.draw(g);
+		this.mode.draw(g);
 		// Dispose of the graphics instance
 		g.dispose();
 		// Set the antialias and interpolation options
@@ -151,11 +134,6 @@ public class Display extends JPanel {
 		// Print to the panel
 		((Graphics2D) g1).drawImage(drawImage, 0, 0,
 				Main.WINDOW_WIDTH, Main.WINDOW_HEIGHT, Color.BLACK, null);
-	}
-	
-	// Returns the camera bounds
-	public Camera getCamera() {
-		return camera;
 	}
 	
 	// Returns the Listener

@@ -45,10 +45,10 @@ public abstract class GravityEntity extends Entity {
 	private int jumps;
 
 	// Constructs a GravityEntity
-	public GravityEntity(Display display, Terrain terrain, int x, int y, int w,
+	public GravityEntity(EntityIndex ei, Display display, Terrain terrain, int x, int y, int w,
 			int h, double x_rev, double acc_x, double acc_y, double ter_r, double ter_d, double ter_f,
 			double j_pow, double fri_x, int jumps) {
-		super(display, terrain, x, y, w, h);
+		super(ei, display, terrain, x, y, w, h);
 		// Assign values
 		X_REVERSE_MOD = x_rev;
 		TERMINAL_RUN = ter_r;
@@ -79,6 +79,7 @@ public abstract class GravityEntity extends Entity {
 		// VELOCITIES
 		
 		// If a single left/right key is held
+		if (this.getController() != null) {
 		if (this.getController().isHeld(InputType.LEFT)
 				^ this.getController().isHeld(InputType.RIGHT)) {
 			// Get the sign for the direction of the acceleration
@@ -118,6 +119,7 @@ public abstract class GravityEntity extends Entity {
 		}
 		// Update jumped if the up key is released
 		if (!this.getController().isHeld(InputType.UP)) jumped = false;
+		}
 		// Update the y_vel and cap it
 		y_vel += ACCEL_Y;
 		if (y_vel > TERMINAL_FALL) y_vel = TERMINAL_FALL;

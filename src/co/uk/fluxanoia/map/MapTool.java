@@ -70,6 +70,8 @@ public class MapTool extends GameMode {
 	private boolean redraw;
 	// The display for the app
 	private Display display;
+	// The camera
+	private Camera camera;
 	// Whether the map tool is closed or not
 	private boolean closed;
 	// The tileset and empty texture
@@ -93,6 +95,7 @@ public class MapTool extends GameMode {
 		readQuery = new TextQuery("Enter the file name (w/o ending):");
 		this.notifyMessage = "";
 		this.notifyTween = new Tween(0);
+		this.camera = new Camera(0, 0, Main.DRAW_WIDTH, Main.DRAW_HEIGHT);
 		hovered_x = hovered_y = 0;
 		// Assign values
 		this.display = display;
@@ -108,6 +111,9 @@ public class MapTool extends GameMode {
 		checkInput();
 		// Check if the mouse has moved
 		redraw |= display.getListener().dropMouseMoved();
+		// Update the camera
+		camera.update();
+		redraw |= camera.dropMoved();
 		// Check the text query
 		// Data
 		if (dataQuery.dropPressed() || dataQuery.dropCancelled()) {
@@ -151,8 +157,8 @@ public class MapTool extends GameMode {
 	public void draw(Graphics2D g1) {
 		// Create the image to draw to
 		BufferedImage drawImage = new BufferedImage(
-				(int) Math.ceil(display.getCamera().getWidth()),
-				(int) Math.ceil(display.getCamera().getHeight()),
+				(int) Math.ceil(camera.getWidth()),
+				(int) Math.ceil(camera.getHeight()),
 				BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = (Graphics2D) drawImage.getGraphics();
 		// Draw a plain background
@@ -160,12 +166,12 @@ public class MapTool extends GameMode {
 		g.fillRect(0, 0, drawImage.getWidth(), drawImage.getHeight());
 		// Some necessary variables
 		int tx, ty;
-		Rectangle r = display.getCamera().getBounds();
+		Rectangle r = camera.getBounds();
 		// For all the cells in cells...
 		for (Cell c : new ArrayList<Cell>(cells)) {
 			// Get the positions releative to the camera position
-			tx = (int) (c.getX() - display.getCamera().getX());
-			ty = (int) (c.getY() - display.getCamera().getY());
+			tx = (int) (c.getX() - camera.getX());
+			ty = (int) (c.getY() - camera.getY());
 			// If it's off the camera, don't draw
 			if (tx > drawImage.getWidth()  || tx + Terrain.GRID_SIZE < 0) continue;
 			if (ty > drawImage.getHeight() || ty + Terrain.GRID_SIZE < 0) continue;
@@ -191,8 +197,8 @@ public class MapTool extends GameMode {
 		// Draw over the hovered cell
 		g.setColor(new Color(255, 255, 255, 128));
 		g.fillRect(
-				(int) (hovered_x * Terrain.GRID_SIZE - display.getCamera().getX()), 
-				(int) (hovered_y * Terrain.GRID_SIZE - display.getCamera().getY()),
+				(int) (hovered_x * Terrain.GRID_SIZE - camera.getX()), 
+				(int) (hovered_y * Terrain.GRID_SIZE - camera.getY()),
 				Terrain.GRID_SIZE, Terrain.GRID_SIZE);
 		// Draw the image
 		g1.drawImage(drawImage, 0, 0, Main.DRAW_WIDTH, Main.DRAW_HEIGHT, null);
@@ -251,13 +257,13 @@ public class MapTool extends GameMode {
 			zoom = ZOOM_IN_LIMIT;
 		if (prior_zoom != zoom) {
 			// Move the camera according to the zoom
-			display.getCamera().getTweenWidth().move(TweenType.EASE_OUT, ((double) Main.DRAW_WIDTH) / zoom, 5, 0);
-			display.getCamera().getTweenHeight().move(TweenType.EASE_OUT, ((double) Main.DRAW_HEIGHT) / zoom, 5, 0);
+			camera.getTweenWidth().move(TweenType.EASE_OUT, ((double) Main.DRAW_WIDTH) / zoom, 5, 0);
+			camera.getTweenHeight().move(TweenType.EASE_OUT, ((double) Main.DRAW_HEIGHT) / zoom, 5, 0);
 		}
 		// Manage the mouse position
-		hovered_x = (int) ((((double) this.display.getListener().getMouseX() / zoom) + display.getCamera().getX())
+		hovered_x = (int) ((((double) this.display.getListener().getMouseX() / zoom) + camera.getX())
 				/ (double) Terrain.GRID_SIZE);
-		hovered_y = (int) ((((double) this.display.getListener().getMouseY() / zoom) + display.getCamera().getY())
+		hovered_y = (int) ((((double) this.display.getListener().getMouseY() / zoom) + camera.getY())
 				/ (double) Terrain.GRID_SIZE);
 		// Manage mouse presses
 		if (this.display.getListener().isMouseHeld(MouseEvent.BUTTON1)) {
@@ -270,22 +276,22 @@ public class MapTool extends GameMode {
 		redraw |= (d_h != this.display_help);
 		// Moving the camera (left, right, up, down)
 		if (this.display.getListener().isKeyHeld(KeyEvent.VK_A)) {
-			double dest = display.getCamera().getTweenX().getDestination() - 5;
+			double dest = camera.getTweenX().getDestination() - 5;
 			if (dest < 0)
 				dest = 0;
-			display.getCamera().getTweenX().move(TweenType.EASE_OUT, dest, 5, 0);
+			camera.getTweenX().move(TweenType.EASE_OUT, dest, 5, 0);
 		}
 		if (this.display.getListener().isKeyHeld(KeyEvent.VK_D)) {
-			display.getCamera().getTweenX().move(TweenType.EASE_OUT, display.getCamera().getTweenX().getDestination() + 5, 5, 0);
+			camera.getTweenX().move(TweenType.EASE_OUT, camera.getTweenX().getDestination() + 5, 5, 0);
 		}
 		if (this.display.getListener().isKeyHeld(KeyEvent.VK_W)) {
-			double dest = display.getCamera().getTweenY().getDestination() - 5;
+			double dest = camera.getTweenY().getDestination() - 5;
 			if (dest < 0)
 				dest = 0;
-			display.getCamera().getTweenY().move(TweenType.EASE_OUT, dest, 5, 0);
+			camera.getTweenY().move(TweenType.EASE_OUT, dest, 5, 0);
 		}
 		if (this.display.getListener().isKeyHeld(KeyEvent.VK_S)) {
-			display.getCamera().getTweenY().move(TweenType.EASE_OUT, display.getCamera().getTweenY().getDestination() + 5, 5, 0);
+			camera.getTweenY().move(TweenType.EASE_OUT, camera.getTweenY().getDestination() + 5, 5, 0);
 		}
 		// Deleting cells
 		if (this.display.getListener().isKeyHeld(KeyEvent.VK_SHIFT)) {

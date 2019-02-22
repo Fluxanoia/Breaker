@@ -104,6 +104,16 @@ public class Listener implements KeyListener, MouseListener, MouseWheelListener,
 		return (int) (((double) this.mouse_y) * mouse_y_sf);
 	}
 	
+	// Returns the raw mouse x value
+	public int getRawMouseX() {
+		return this.mouse_x;
+	}
+		
+	// Returns the mouse y value
+	public int getRawMouseY() {
+		return this.mouse_y;
+	}
+	
 	// Returns the mouse scroll value
 	public double getScrollAmount() {
 		return this.scrollAmount;
