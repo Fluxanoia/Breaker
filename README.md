@@ -2,10 +2,12 @@
 
 ## Fonts
 
-Used in game title:
 Hang the DJ by:
+
 Jakob Fischer
+
 jakob@pizzadude.dk
+
 www.pizzadude.dk
 
 ## Sprites
