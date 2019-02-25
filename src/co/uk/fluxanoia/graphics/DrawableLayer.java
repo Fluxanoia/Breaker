@@ -4,6 +4,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 
+import co.uk.fluxanoia.main.ErrorHandler;
+
 // The DrawableLayer class, allows for independent state layering
 public abstract class DrawableLayer extends Drawable {
 
@@ -57,6 +59,8 @@ public abstract class DrawableLayer extends Drawable {
 	
 	// Adds a component to the desired layer
 	public void addComponent(Layer l, Drawable d) {
+		ErrorHandler.checkNull(l, "A DrawableLayer was given a null layer.");
+		ErrorHandler.checkNull(d, "A DrawableLayer was given a null drawable.");
 		// Go through the layer possibilities and add the component
 		// to the corresponding layer
 		switch (l) {

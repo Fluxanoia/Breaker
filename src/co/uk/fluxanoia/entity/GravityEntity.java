@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import co.uk.fluxanoia.control.Controller.InputType;
 import co.uk.fluxanoia.graphics.Display;
 import co.uk.fluxanoia.graphics.Drawable;
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.map.Terrain;
 import co.uk.fluxanoia.map.Tile;
 import co.uk.fluxanoia.map.Tile.TileType;
@@ -75,6 +76,8 @@ public abstract class GravityEntity extends Entity {
 
 	// Updates the collision of the gravity entity
 	public boolean updateCollision(ArrayList<Tile> tiles) {
+		ErrorHandler.checkNull((Object) tiles, "A GravityEntity was given a null array list of tiles.");
+		ErrorHandler.checkNull(tiles, "A GravityEntity was given a null tile.");
 		
 		// VELOCITIES
 		
@@ -209,70 +212,6 @@ public abstract class GravityEntity extends Entity {
 		x = new_x;
 		y = new_y;
 		return moved;
-		
-		/*
-		// Hold the pending x and y values
-		double new_x = x + x_vel;
-		double new_y = y + y_vel;
-		Rectangle next_box = this.getHitbox();
-		next_box.setLocation((int) (next_box.getX() + x_vel),
-				(int) (next_box.getY() + y_vel));
-		// Get the points surrounding the player
-		Point[] top = getTopPoints(next_box);
-		Point[] bottom = getBottomPoints(next_box);
-		Point[] left = getLeftPoints(next_box);
-		Point[] right = getRightPoints(next_box);
-		// Iterate through all the platforms
-		Rectangle tileBounds;
-		// Tracking the contained bottom points
-		boolean[] contained = new boolean[bottom.length];
-		for (int i = 0; i < contained.length; i++) contained[i] = false;
-		for (Tile t : tiles) {
-			// If it's not collidable, continue
-			if (t.getType() == TileType.NO_COLLIDE) continue;
-			// Get the bounds of the platform
-			tileBounds = t.getBounds();
-			// If the platform intersects with the box
-			if (next_box.intersects(tileBounds)) {
-				// Prepare the sides according to the type of platform
-				ArrayList<Integer> containing = containing(tileBounds, bottom);
-				for (Integer i : containing) contained[i] = true;
-				if (containsAny(tileBounds, bottom) && y_vel >= 0) {
-					new_y = tileBounds.getY() + 1
-							- Math.floor(next_box.getBounds().getHeight() / 2);
-					y_vel = 0;
-					grounded = true;
-					jumps = JUMPS;
-				}
-				if (containsAny(tileBounds, top) && y_vel <= 0) {
-					new_y = tileBounds.getMaxY()
-							+ next_box.getBounds().getHeight() / 2;
-					y_vel = 0;
-				}
-				if (containsAny(tileBounds, left) && x_vel <= 0) {
-					new_x = tileBounds.getMaxX()
-							+ Math.floor(next_box.getBounds().getWidth() / 2);
-					x_vel = 0;
-				}
-				if (containsAny(tileBounds, right) && x_vel >= 0) {
-					new_x = tileBounds.getX() + 1
-							- Math.floor(next_box.getBounds().getWidth() / 2);
-					x_vel = 0;
-					break;
-				}
-			}
-		}
-		// Check teeter
-		int count = 0;
-		for (int i = 0; i < contained.length; i++) if (contained[i]) count++;
-		teeter = count != 0 && count != contained.length;
-		grounded = !(count == 0);
-		// Set the new x and y values
-		boolean moved = (x != new_x || y != new_y);
-		x = new_x;
-		y = new_y;
-		return moved;
-		*/
 	}
 	
 	// Returns whether there's a tile at the position

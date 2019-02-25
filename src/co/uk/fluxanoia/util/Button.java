@@ -7,6 +7,8 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 
+import co.uk.fluxanoia.main.ErrorHandler;
+
 // The Button, an individual button - usually managed by ButtonManager
 public class Button {
 	
@@ -35,6 +37,9 @@ public class Button {
 	
 	// Constructs a Button
 	public Button(int ID, Dimension dimensions, String text, int x, int y) {
+		// Check for null values
+		ErrorHandler.checkNull(dimensions, "A Button was given a null dimension.");
+		ErrorHandler.checkNull(text, "A Button was given a null text.");
 		// Assign values
 		this.ID = ID;
 		this.dimensions = dimensions;
@@ -53,6 +58,7 @@ public class Button {
 	
 	// Updates the button (with the mouse position)
 	public void update(Point mouse_position) {
+		ErrorHandler.checkNull(mouse_position, "A Button was given a null mouse position.");
 		// Check if the mouse is over the button
 		if (this.getBounds().contains(mouse_position)) {
 			if (!hovered) {
@@ -81,6 +87,8 @@ public class Button {
 	
 	// Draws the button
 	public void draw(Graphics2D g, Font font, Color text_color) {
+		ErrorHandler.checkNull(font, "A Button was given a null font.");
+		ErrorHandler.checkNull(text_color, "A Button was given a null text colour.");
 		if (hovered) {
 			g.setColor(new Color(255, 255, 255, 40));
 		}

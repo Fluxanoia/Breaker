@@ -1,5 +1,6 @@
 package co.uk.fluxanoia.control;
 
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.main.Listener;
 
 // The abstract controller class, allows entities to be AI or player controlled
@@ -16,10 +17,11 @@ public abstract class Controller {
 		public String getID() { return id; }
 		
 		// Returns the EntityIndex associated with the id
-		public static ControllerType getType(String id) {
+		public static ControllerType getType(String s) {
+			ErrorHandler.checkNull(s, "The ControllerType enum was given a null input string.");
 			ControllerType[] cts = ControllerType.values();
 			for (int i = 0; i < cts.length; i++) {
-				if (id.equals(cts[i].getID())) return cts[i];
+				if (s.equals(cts[i].getID())) return cts[i];
 			}
 			return null;
 		}
@@ -49,6 +51,10 @@ public abstract class Controller {
 	
 	// Constructs a controller
 	public Controller(ControllerType type, Listener listener) {
+		// Check for null inputs
+		ErrorHandler.checkNull(type, "A Controller was given a null ControllerType.");
+		ErrorHandler.checkNull(listener, "A Controller was given a null Listener");
+		// Assign values
 		this.type = type;
 		this.listener = listener;
 	}

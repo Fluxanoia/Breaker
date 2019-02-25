@@ -1,5 +1,6 @@
 package co.uk.fluxanoia.entity;
 
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.util.Tween;
 import co.uk.fluxanoia.util.Tween.TweenType;
 
@@ -17,6 +18,8 @@ public class AnimationTween {
 	
 	// Constructs an animation tween
 	public AnimationTween(double before, double after, int duration, TweenType type) {
+		// Check for null values
+		ErrorHandler.checkNull(type, "An AnimationTween was given a null TweenType.");
 		// Assign values
 		this.before = before;
 		this.after = after;

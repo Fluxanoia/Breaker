@@ -10,6 +10,8 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import co.uk.fluxanoia.main.ErrorHandler;
+
 // The TextQuery class, manages a window that takes text input
 public class TextQuery {
 	
@@ -27,6 +29,9 @@ public class TextQuery {
 		this(title, new Point(250, 300));
 	}
 	public TextQuery(String title, Point p) {
+		// Check for null values
+		ErrorHandler.checkNull(title, "A TextQuery was given a null title.");
+		ErrorHandler.checkNull(p, "A TextQuery was given a null point.");
 		// Initialise values
 		this.pressed = false;
 		this.cancelled = false;
@@ -57,6 +62,12 @@ public class TextQuery {
 		this.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.window.setUndecorated(true);
 		this.window.pack();
+	}
+	
+	// Sets the text of the query window
+	public void setText(String s) {
+		ErrorHandler.checkNull(s, "A TextQuery was given a null string");
+		this.textField.setText(s);
 	}
 	
 	// Displays the window

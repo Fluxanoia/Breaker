@@ -7,6 +7,7 @@ import java.util.HashMap;
 import co.uk.fluxanoia.graphics.Display;
 import co.uk.fluxanoia.graphics.Drawable;
 import co.uk.fluxanoia.graphics.GridBackground;
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.main.GameMode;
 import co.uk.fluxanoia.main.Main;
 import co.uk.fluxanoia.map.Camera;
@@ -76,6 +77,7 @@ public class StateManager extends GameMode {
 	
 	// Changes the state of the StateManager
 	public void changeState(StateType st) {
+		ErrorHandler.checkNull(st, "The StateManager was given a null state type.");
 		// If the StateManager is closed, return
 		if (closed) return;
 		// If expected to close, close

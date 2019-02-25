@@ -11,13 +11,14 @@ import java.util.ArrayList;
 import co.uk.fluxanoia.graphics.Display;
 import co.uk.fluxanoia.graphics.Drawable;
 import co.uk.fluxanoia.main.AudioManager;
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.main.Main;
 
 // The ButtonManager class, manages a collection of buttons
 public class ButtonManager extends Drawable {
 	
 	// The value corresponding to the centre of the axis
-	public static final int CENTRE_VALUE = -1024;
+	public static final int CENTRE_VALUE = -Main.WINDOW_WIDTH * 3;
 	// The default colour of the text
 	public static final Color DEFAULT_TEXT_COLOR = new Color(240, 240, 240);
 	// The default font of the button
@@ -38,6 +39,8 @@ public class ButtonManager extends Drawable {
 	public ButtonManager(Display display) {
 		// Construct the Drawable
 		super();
+		// Check for null values
+		ErrorHandler.checkNull(display, "A ButtonManager was given a null display.");
 		// Assigns values
 		this.display = display;
 		// Initialise values
@@ -88,6 +91,7 @@ public class ButtonManager extends Drawable {
 	
 	// Adds a new button
 	public void addButton(int ID, Dimension dimensions, String text, int x, int y) {
+		ErrorHandler.checkNull(dimensions, "A ButtonManager was given a null dimension.");
 		// Create the button
 		if (x == CENTRE_VALUE) x = (int) ((Main.DRAW_WIDTH - dimensions.getWidth()) / 2);
 		if (y == CENTRE_VALUE) y = (int) ((Main.DRAW_HEIGHT - dimensions.getHeight()) / 2);

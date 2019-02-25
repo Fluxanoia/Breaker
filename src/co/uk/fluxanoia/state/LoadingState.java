@@ -1,8 +1,6 @@
 package co.uk.fluxanoia.state;
 
 import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 
 import co.uk.fluxanoia.graphics.Background;
 import co.uk.fluxanoia.graphics.Display;
@@ -15,11 +13,6 @@ public class LoadingState extends State {
 
 	// Images for the background
 	private Background fore;
-	private Background load;
-	// The loading icon
-	private BufferedImage load_ico;
-	// The updates that have occurred so far
-	private int ticks;
 	// Whether audio was loaded on the last update
 	private boolean wasLoaded;
 
@@ -28,13 +21,11 @@ public class LoadingState extends State {
 		// Constructs a State
 		super(stateManager, display);
 		// Initialises values
-		ticks = 0;
 		wasLoaded = false;
 		// Initialises the backgrounds
-		fore = new Background(display, "res\\menu\\background_fore.png", 1.75, true);
-		load = new Background(display, "res\\menu\\load.png", 1, true);
-		// Load the load icon
-		load_ico = display.getResourceManager().getImage("res\\icons\\load.png");
+		fore = new Background(
+				display.getResourceManager().getImage("res\\menu\\background_fore.png"), 
+				MenuState.FORE_OUT_SCALE);
 		// Add the backgrounds to the layer
 		this.addComponent(Layer.FG, fore);
 	}
@@ -43,21 +34,18 @@ public class LoadingState extends State {
 	public void wake() {
 		// Set the background color
 		// Move the foreground in
-		fore.moveRelativeScale(TweenType.EASE_OUT, 1, 60, 0);
+		fore.moveScale(TweenType.EASE_OUT, 1, 60, 0);
 	}
 
 	// Sleeps the state
 	public void sleep() {
 		// Reset the foreground
-		fore.setRelativeScale(1.75);
-		// Reset the updates
-		ticks = 0;
+		fore.setScale(1.75);
 	}
 
 	// Updates the states
 	public void update() {
 		if (!this.getDisplay().getAudioManager().isLoaded()) {
-			ticks++;
 			this.pushClipBounds(Display.drawBounds());
 			return;
 		}
@@ -76,15 +64,7 @@ public class LoadingState extends State {
 		if (this.getDisplay().getAudioManager().isLoaded()) {
 			this.drawComponents(g);
 		} else {
-			// Draw the loading screen
-			load.draw(g);
-			// Draw the load icon
-			AffineTransform at = new AffineTransform();
-			at.translate(load_ico.getWidth() / 2 + 5, load_ico.getHeight() / 2 + 5);
-			at.rotate(Math.toRadians(ticks * 6));
-			g.setTransform(at);
-			g.drawImage(load_ico, null, -load_ico.getWidth() / 2, -load_ico.getHeight() / 2);
-			g.setTransform(new AffineTransform());
+			this.getDisplay().drawLoading(g);
 		}
 	}
 

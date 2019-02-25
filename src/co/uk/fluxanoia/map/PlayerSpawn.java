@@ -1,13 +1,11 @@
 package co.uk.fluxanoia.map;
 
 import co.uk.fluxanoia.entity.Entity.EntityIndex;
+import co.uk.fluxanoia.main.ErrorHandler;
 
 // The PlayerSpawn class, represents a player spawn location
 public class PlayerSpawn extends Cell {
 
-	// Structure of player spawns in files
-	// ...ENTITY
-	
 	// The spawning entity index
 	private EntityIndex entityIndex;
 	
@@ -27,6 +25,7 @@ public class PlayerSpawn extends Cell {
 
 	// Takes a string and translates it into specific player spawn information
 	public void parseData(String s) {
+		ErrorHandler.checkNull(s, "A PlayerSpawn was given a null input string.");
 		entityIndex = EntityIndex.getIndex(s);
 	}
 

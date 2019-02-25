@@ -39,6 +39,7 @@ public class AudioManager {
 
     // Initialises the audio manager
     public AudioManager(ResourceManager resourceManager) {
+    	ErrorHandler.checkNull(resourceManager, "The AudioManager was given a null resource manager.");
         // Assigns values
         this.resourceManager = resourceManager;
         // Initialises values
@@ -86,6 +87,8 @@ public class AudioManager {
 
     // Plays a new music track
     public void changeMusic(MusicTransition mt, int duration, String path) {
+    	ErrorHandler.checkNull(mt, "The AudioManager was given a null music transition.");
+    	ErrorHandler.checkNull(path, "The AudioManager was given a null path.");
     	switch (mt) {
 		case FADE_IN:
 			musicVolume.set(0);
@@ -135,6 +138,7 @@ public class AudioManager {
 
     // Plays a sound effect
     public void playSFX(String path) {
+    	ErrorHandler.checkNull(path, "The AudioManager was given a null path.");
         MediaPlayer sfx = resourceManager.getMP3(path);
         sfx.setVolume(sfxVolume);
         sfx.stop();

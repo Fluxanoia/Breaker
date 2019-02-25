@@ -2,6 +2,8 @@ package co.uk.fluxanoia.entity;
 
 import java.awt.Point;
 
+import co.uk.fluxanoia.main.ErrorHandler;
+
 // The Animation class, represents a single animation for an entity
 public class Animation {
 	
@@ -33,6 +35,9 @@ public class Animation {
 	public Animation(Point[] textures, int[] durations, AnimationTween[] x, AnimationTween[] y,
 			AnimationTween[] w, AnimationTween[] h,
 			AnimationTween[] rotations, Point[] centres) {
+		// Check for null values
+		ErrorHandler.checkNull((Object) textures, "An Animation was given a null set of texture indexes.");
+		ErrorHandler.checkNull((Object[]) textures, "An Animation was given a null texture index.");
 		// Assign values
 		this.x = x;
 		this.y = y;
@@ -148,10 +153,12 @@ public class Animation {
 	}
 	public double getWidth() {
 		if (w == null) return 0;
+		if (w[index].value() < 0) return 0;
 		return w[index].value();
 	}
 	public double getHeight() {
 		if (h == null) return 0;
+		if (h[index].value() < 0) return 0;
 		return h[index].value();
 	}
 	

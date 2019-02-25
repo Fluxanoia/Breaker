@@ -4,6 +4,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 
+import co.uk.fluxanoia.main.ErrorHandler;
+
 // The abstract Drawable class, to allow classes
 // to be drawn by the Display
 public abstract class Drawable {
@@ -22,6 +24,7 @@ public abstract class Drawable {
 	
 	// Updates the new clip bounds and pushes the old one
 	public void pushClipBounds(Rectangle clip) {
+		ErrorHandler.checkNull(clip, "A Drawable was given a null clip rectangle.");
 		if (Display.area(clipBounds) == 0) {
 			this.clipBounds = clip;
 		} else {
@@ -36,6 +39,7 @@ public abstract class Drawable {
 	
 	// Sets the clip bounds to a single rectangle
 	public void setClipBounds(Rectangle clipBounds) {
+		ErrorHandler.checkNull(clipBounds, "A Drawable was given a null clip rectangle.");
 		this.clipBounds = clipBounds;
 		this.oldClipBounds = clipBounds;
 	}
@@ -61,6 +65,8 @@ public abstract class Drawable {
 	
 	// Returns the rectangle containing both the input rectangles
 	public static Rectangle encapsulate(Rectangle[] rs) {
+		ErrorHandler.checkNull((Object) rs, "A Drawable was given a null set of clip rectangles.");
+		ErrorHandler.checkNull((Object[]) rs, "A Drawable was given a null clip rectangle.");
 		if (rs.length == 0) return new Rectangle(0, 0, 0, 0);
 		int x = (int) rs[0].getX(), 
 			y = (int) rs[0].getY(), 
@@ -77,6 +83,8 @@ public abstract class Drawable {
 	
 	// The same as the previous method but for ArrayLists
 	public static Rectangle encapsulate(ArrayList<Rectangle> rs) {
+		ErrorHandler.checkNull((Object) rs, "A Drawable was given a null set of clip rectangles.");
+		ErrorHandler.checkNull(rs, "A Drawable was given a null set of clip rectangle.");
 		Rectangle[] rss = new Rectangle[rs.size()];
 		for (int i = 0; i < rss.length; i++) rss[i] = rs.get(i);
 		return encapsulate(rss);

@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import co.uk.fluxanoia.control.Controller;
 import co.uk.fluxanoia.graphics.Display;
 import co.uk.fluxanoia.graphics.Drawable;
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.map.Terrain;
 
 // The Entity class, gives a basis for all entities
@@ -22,10 +23,11 @@ public abstract class Entity extends Drawable {
 		public String getID() { return id; }
 		
 		// Returns the EntityIndex associated with the id
-		public static EntityIndex getIndex(String id) {
+		public static EntityIndex getIndex(String s) {
+			ErrorHandler.checkNull(s, "The EntityIndex enum was given a null input string.");
 			EntityIndex[] eis = EntityIndex.values();
 			for (int i = 0; i < eis.length; i++) {
-				if (id.equals(eis[i].getID())) return eis[i];
+				if (s.equals(eis[i].getID())) return eis[i];
 			}
 			return null;
 		}
@@ -34,7 +36,7 @@ public abstract class Entity extends Drawable {
 			return getEntity(getIndex(id), display, terrain, x, y);
 		}
 		public static Entity getEntity(EntityIndex ei, Display display, Terrain terrain, int x, int y) {
-			if (ei == null) return null;
+			ErrorHandler.checkNull(ei, "The EntityIndex enum was given a null entity index.");
 			switch (ei) {
 			case PROTAGONIST:
 				return new Protagonist(display, terrain, x, y);
@@ -62,6 +64,10 @@ public abstract class Entity extends Drawable {
 	
 	// Constructs an entity
 	public Entity(EntityIndex entityIndex, Display display, Terrain terrain, int x, int y, int w, int h) {
+		// Check for null inputs
+		ErrorHandler.checkNull(entityIndex, "An Entity was given a null EntityIndex.");
+		ErrorHandler.checkNull(display, "An Entity was given a null Display.");
+		ErrorHandler.checkNull(terrain, "An Entity was given a null Terrain");
 		// Initialise values
 		this.x_vel = this.y_vel = 0;
 		// Assign values
@@ -122,13 +128,13 @@ public abstract class Entity extends Drawable {
 	
 	// Returns the entity index
 	public EntityIndex getEntityIndex() { return entityIndex; }
-	// Returns the display
-	public Display getDisplay() { return display; }
-	// Returns the terrain
-	public Terrain getTerrain() { return terrain; }
-	// Returns the animator
-	public Animator getAnimator() { return animator; }
 	// Returns the controller
 	public Controller getController() { return controller; }
+	// Returns the display
+	protected Display getDisplay() { return display; }
+	// Returns the terrain
+	protected Terrain getTerrain() { return terrain; }
+	// Returns the animator
+	protected Animator getAnimator() { return animator; }
 	
 }

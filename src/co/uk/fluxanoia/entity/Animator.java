@@ -8,6 +8,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import co.uk.fluxanoia.graphics.Display;
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.main.ResourceManager;
 import co.uk.fluxanoia.map.Camera;
 import co.uk.fluxanoia.util.Tween.TweenType;
@@ -38,8 +40,8 @@ public class Animator {
 
 	// Updates the animator
 	public boolean update() {
-		if (!animations.isEmpty()) return this.animations.get(animIndex).update();
-		return false;
+		if (animations.isEmpty()) return false;
+		return this.animations.get(animIndex).update();
 	}
 
 	// Draws the image at the required x and y values
@@ -70,7 +72,7 @@ public class Animator {
 			x += w;
 			w *= -1;
 		}
-		if (pos.getWidth() == 0 || pos.getHeight() == 0) {
+		if (Display.area(pos) == 0) {
 			g.drawImage(image, (int) x, (int) y, (int) w,
 					image.getHeight(), null);
 		} else {
@@ -168,6 +170,7 @@ public class Animator {
 
 	// Sets an animation
 	public void forceAnimation(int id, int reqLoops) {
+		ErrorHandler.checkIndex(id, animations.size(), "An Animator was given an out of bounds index.");
 		this.animations.get(animIndex).reset();
 		this.animIndex = id;
 		this.animations.get(animIndex).start(reqLoops);

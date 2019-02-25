@@ -1,5 +1,6 @@
 package co.uk.fluxanoia.map;
 
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.util.Tween;
 
 // The cell class, representing a part of the map
@@ -41,6 +42,8 @@ public abstract class Cell {
 	
 	// Constructs a Cell
 	public Cell(int cellx, int celly, int textureX, int textureY, CellType type) {
+		// Check for null values
+		ErrorHandler.checkNull(type, "A Cell was given a null type.");
 		// Assign values
 		this.type = type;
 		this.cellx = cellx;

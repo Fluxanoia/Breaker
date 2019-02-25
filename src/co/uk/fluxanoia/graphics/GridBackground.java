@@ -3,6 +3,7 @@ package co.uk.fluxanoia.graphics;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.main.Main;
 import co.uk.fluxanoia.util.Tween;
 import co.uk.fluxanoia.util.Tween.TweenType;
@@ -116,6 +117,7 @@ public class GridBackground extends Drawable {
 
     // Sets the colour of the grid
     public void setColour(Color c, int duration) {
+    	ErrorHandler.checkNull(c, "A Background was given a null colour.");
         this.r.move(TweenType.EASE_IN, c.getRed(), duration, 0);
         this.g.move(TweenType.EASE_IN, c.getGreen(), duration, 0);
         this.b.move(TweenType.EASE_IN, c.getBlue(), duration, 0);

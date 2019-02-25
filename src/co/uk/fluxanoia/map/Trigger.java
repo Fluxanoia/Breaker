@@ -6,33 +6,19 @@ import java.awt.Rectangle;
 import co.uk.fluxanoia.control.Controller.ControllerType;
 import co.uk.fluxanoia.entity.Entity.EntityIndex;
 import co.uk.fluxanoia.graphics.Display;
+import co.uk.fluxanoia.main.ErrorHandler;
 import javafx.geometry.Point2D;
 
 // The Trigger class, represents an action in the game world
 public class Trigger extends Cell{
-
-	// Structure of triggers in files
-	// ...TYPE_EFFECT_DATA
-	
-	// Structure of data in files
-	// - Music
-		// TRANSITION_DURATION_PATH
-	// - Sound Effects
-		// PATH
-	// - Background
-		// R_G_B_FX_FY_BX_BY_OPACITY_DURATION
-	// - Entity
-		// INDEX_CONTROLLER
-	// - Camera
-		// MOVEMENT_VX_VY
 	
 	// The types of triggers
 	public enum TriggerType {
-		ONSCREEN("ons", "Onscreen"),       // Triggered when it enters the camera's view
-		OFFSCREEN("off", "Offscreen"),     // Triggered when it enters and then leaves the camera's view
-		PLAYER_X("pxp", "Player X"),       // Triggered when the player's x value is the same as the trigger
-		PLAYER_Y("pyp", "Player Y"),       // Triggered when the player's y value is the same as the trigger
-		PLAYER_XY("pxy", "Player X & Y");  // Triggered when the player is on the trigger
+		ONSCREEN("ons", "Onscreen"),
+		OFFSCREEN("off", "Offscreen"),
+		PLAYER_X("pxp", "Player X"),
+		PLAYER_Y("pyp", "Player Y"),
+		PLAYER_XY("pxy", "Player X & Y");
 		private String id, name;
 		TriggerType(String id, String name) { 
 			this.id = id; 
@@ -42,6 +28,7 @@ public class Trigger extends Cell{
 		public String getName() { return name; }
 		
 		public static TriggerType parse(String s) {
+			ErrorHandler.checkNull(s, "The TriggerType enum was given a null input string.");
 			for (TriggerType tt : TriggerType.values()) {
 				if (tt.getID().equals(s)) return tt;
 			}
@@ -65,6 +52,7 @@ public class Trigger extends Cell{
 		public String getName() { return name; }
 		
 		public static TriggerEffect parse(String s) {
+			ErrorHandler.checkNull(s, "The TriggerEffect enum was given a null input string.");
 			for (TriggerEffect te : TriggerEffect.values()) {
 				if (te.getID().equals(s)) return te;
 			}
@@ -87,6 +75,7 @@ public class Trigger extends Cell{
 		public String getName() { return name; }
 		
 		public static MusicTransition parse(String s) {
+			ErrorHandler.checkNull(s, "The MusicTransition enum was given a null input string.");
 			for (MusicTransition mt : MusicTransition.values()) {
 				if (mt.getID().equals(s)) return mt;
 			}
@@ -108,6 +97,7 @@ public class Trigger extends Cell{
 		public String getName() { return name; }
 		
 		public static CameraMovement parse(String s) {
+			ErrorHandler.checkNull(s, "The CameraMovement enum was given a null input string.");
 			for (CameraMovement cm : CameraMovement.values()) {
 				if (cm.getID().equals(s)) return cm;
 			}
@@ -159,6 +149,9 @@ public class Trigger extends Cell{
 	public Trigger(Display display, Terrain terrain, int x, int y, TriggerType type, TriggerEffect effect) {
 		// Construct the cell
 		super(x, y, -1, -1, CellType.TRIGGER);
+		// Check for null values
+		ErrorHandler.checkNull(display, "A Trigger was given a null display.");
+		ErrorHandler.checkNull(terrain, "A Trigger was given a null terrain.");
 		// Assign values
 		this.display = display;
 		this.terrain = terrain;
@@ -256,6 +249,7 @@ public class Trigger extends Cell{
 	
 	// Takes a string and translates it into specific trigger information
 	public void parseData(String s) {
+		ErrorHandler.checkNull(s, "A Trigger was given a null input string.");
 		String[] split = s.split("_");
 		if (split.length > 0) {
 			TriggerType tt = TriggerType.parse(split[0]);
@@ -269,23 +263,37 @@ public class Trigger extends Cell{
 		switch (effect) {
 		case BACKGROUND:
 			if (split.length > 8) {
-				this.gridColour = new Color(
-						Integer.valueOf(split[2]),
-						Integer.valueOf(split[3]),
-						Integer.valueOf(split[4]));
-				this.gridForeVector = new Point2D(
-						Double.valueOf(split[5]),
-						Double.valueOf(split[6]));
-				this.gridBackVector = new Point2D(
-						Double.valueOf(split[7]),
-						Double.valueOf(split[8]));
+				int r, g, b;
+				try {
+					r = Integer.valueOf(split[2]);
+					g = Integer.valueOf(split[3]);
+					b = Integer.valueOf(split[4]);
+				} catch (NumberFormatException e) {
+					r = g = b = 0;
+				}
+				this.gridColour = new Color(r, g, b);
+				double vx, vy;
+				try {
+					vx = Double.valueOf(split[5]);
+					vy = Double.valueOf(split[6]);
+				} catch (NumberFormatException e) {
+					vx = vy = 0;
+				}
+				this.gridForeVector = new Point2D(vx, vy);
+				try {
+					vx = Double.valueOf(split[7]);
+					vy = Double.valueOf(split[8]);
+				} catch (NumberFormatException e) {
+					vx = vy = 0;
+				}
+				this.gridBackVector = new Point2D(vx, vy);
 			}
 			if (split.length > 10) {
 				this.gridOpacity = Double.valueOf(split[9]);
 				this.gridDuration = Integer.valueOf(split[10]);
 			} else {
 				this.gridOpacity = 1;
-				this.gridDuration = 10;
+				this.gridDuration = 1;
 			}
 			break;
 		case CAMERA:
@@ -303,9 +311,18 @@ public class Trigger extends Cell{
 			if (split.length > 3) entityController = ControllerType.getType(split[3]);
 			break;
 		case MUSIC:
-			if (split.length > 4) {
+			if (split.length > 2) {
 				musicTransition = MusicTransition.parse(split[2]);
-				transitionDuration = Integer.valueOf(split[3]);
+			}
+			if (split.length > 3) {
+				try {
+					transitionDuration = Integer.valueOf(split[3]);
+				} catch (NumberFormatException e) {
+					transitionDuration = 0;
+				}
+				if (transitionDuration < 0) transitionDuration = 0;
+			}
+			if (split.length > 4) {
 				musicPath = split[4];
 			}
 			break;

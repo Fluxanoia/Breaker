@@ -1,7 +1,6 @@
 package co.uk.fluxanoia.main;
 
 import co.uk.fluxanoia.graphics.Display;
-import co.uk.fluxanoia.main.GameMode.Mode;
 
 // Contains the entry point and is the main controller for the game
 public class Main {
@@ -15,8 +14,6 @@ public class Main {
 	public static final int WINDOW_HEIGHT      = 720;
 	// The updates per second that the game runs at
 	private static final int UPDATES_PER_SECOND = 60;
-	// Whether the game loads into the map tool or the game
-	public static final Mode MODE = Mode.GAME;
 	
 	// The display controller for the game
 	private Display display;

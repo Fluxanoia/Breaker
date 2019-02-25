@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 
 import co.uk.fluxanoia.graphics.Display;
 import co.uk.fluxanoia.graphics.DrawableLayer;
+import co.uk.fluxanoia.main.ErrorHandler;
 
 // The abstract State class, is the basis for all states
 public abstract class State extends DrawableLayer {
@@ -36,6 +37,8 @@ public abstract class State extends DrawableLayer {
 	
 	// Constructs a State
 	public State(StateManager stateManager, Display display) {
+		ErrorHandler.checkNull(stateManager, "A State was given a null state manager.");
+		ErrorHandler.checkNull(display, "A State was given a null display.");
 		// Assigns the variables
 		this.display = display;
 		this.stateManager = stateManager;

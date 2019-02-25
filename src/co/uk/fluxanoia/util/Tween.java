@@ -1,5 +1,7 @@
 package co.uk.fluxanoia.util;
 
+import co.uk.fluxanoia.main.ErrorHandler;
+
 // The TweenValue class, allows for smooth movements
 public class Tween {
 
@@ -24,6 +26,7 @@ public class Tween {
 		
 		// Returns the tween type that is represented by s
 		public static TweenType toTweenType(String s) {
+			ErrorHandler.checkNull(s, "The TweenType enum was given a null input string.");
 			// Get all the TweenTypes
 			TweenType[] tts = TweenType.values();
 			// Iterate through the types
@@ -85,6 +88,7 @@ public class Tween {
 
 	// Sets the tween to move toward a value
 	public void move(TweenType tweenType, double end, int duration, int hold) {
+		ErrorHandler.checkNull(tweenType, "A Tween was given a null type.");
 		// Move the tween to the end of its current movement
 	    this.start = this.value();
 		// Update the type of tween
@@ -105,6 +109,7 @@ public class Tween {
 	
 	// Sets the tween to move toward a value - forces completion of last movement
 	public void push(TweenType tweenType, double end, int duration, int hold) {
+		ErrorHandler.checkNull(tweenType, "A Tween was given a null type.");
 		// Update the type of tween
 	    this.tweenType = tweenType;
 	    // Set the time to the beginning

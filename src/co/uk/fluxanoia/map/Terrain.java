@@ -16,6 +16,7 @@ import co.uk.fluxanoia.entity.Entity.EntityIndex;
 import co.uk.fluxanoia.graphics.Display;
 import co.uk.fluxanoia.graphics.Drawable;
 import co.uk.fluxanoia.graphics.GridBackground;
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.main.Main;
 import co.uk.fluxanoia.main.ResourceManager;
 import co.uk.fluxanoia.map.Trigger.CameraMovement;
@@ -54,6 +55,10 @@ public class Terrain extends Drawable {
 
 	// Constructs a GameGrid
 	public Terrain(Display display, Camera camera, GridBackground gbg) {
+		// Check for null values
+		ErrorHandler.checkNull(display, "A Terrain was given a null display.");
+		ErrorHandler.checkNull(camera, "A Terrain was given a null camera.");
+		ErrorHandler.checkNull(gbg, "A Terrain was given a null grid background.");
 		// Assign values
 		this.gridBackground = gbg;
 		this.camera = camera;
@@ -158,6 +163,7 @@ public class Terrain extends Drawable {
 	// Pushes a background change
 	public void pushBackgroundChange(Color c, double f_x, double f_y, double b_x, double b_y,
 			double opacity, int duration) {
+		ErrorHandler.checkNull(c, "A Terrain was given a null colour.");
 		this.gridBackground.setColour(c, duration);
 		if (opacity != -1) this.gridBackground.getOpacity().push(TweenType.EASE_IN, opacity, duration, 0);
 		this.gridBackground.setGridDirections(f_x, f_y, b_x, b_y);
@@ -165,12 +171,15 @@ public class Terrain extends Drawable {
 	
 	// Pushes a camera change
 	public void pushCameraMode(CameraMovement cameraMode, Point2D scroll) {
+		ErrorHandler.checkNull(cameraMode, "A Terrain was given a null camera mode.");
+		ErrorHandler.checkNull(scroll, "A Terrain was given a null scroll vector.");
 		this.cameraMode = cameraMode;
 		this.cameraScroll = scroll;
 	}
 	
 	// Adds an entity
 	public void addEntity(EntityIndex ei, Controller c, int x, int y) {
+		ErrorHandler.checkNull(ei, "A Terrain was given a null entity index.");
 		Entity e = EntityIndex.getEntity(ei, display, this, x, y);
 		if (e == null) return;
 		e.setController(c);

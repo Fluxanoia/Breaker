@@ -4,12 +4,11 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
+import co.uk.fluxanoia.main.ErrorHandler;
+
 // The Tile class, represents a small section of the game's terrain
 public class Tile extends Cell {
 
-	// Structure of tiles in files
-	// ...TYPE_TX_TY
-	
 	// The types of tiles
 	public enum TileType {
 		COLLIDE("col", "Collision Enabled"), 
@@ -23,6 +22,7 @@ public class Tile extends Cell {
 		public String getName() { return name; }
 		
 		public static TileType parse(String s) {
+			ErrorHandler.checkNull(s, "The TileType enum was given a null input string.");
 			for (TileType tt : TileType.values()) {
 				if (tt.getID().equals(s)) return tt;
 			}
@@ -43,6 +43,8 @@ public class Tile extends Cell {
 	
 	// Draws the tile
 	public void draw(Graphics2D g, Rectangle r, BufferedImage image) {
+		ErrorHandler.checkNull(r, "A Tile was given a null camera bound.");
+		ErrorHandler.checkNull(image, "A Tile was given a null image.");
 		// If the tile is out of bounds, return
 		if (!(r.intersects(this.getBounds()))) return;
 		// Draw the tile
@@ -54,6 +56,7 @@ public class Tile extends Cell {
 
 	// Takes a string and translates it into specific tile information
 	public void parseData(String s) {
+		ErrorHandler.checkNull(s, "A Tile was given a null input string.");
 		String[] split = s.split("_");
 		if (split.length > 0) {
 			TileType tt = TileType.parse(split[0]);

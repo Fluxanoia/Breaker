@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.main.Main;
 import co.uk.fluxanoia.util.Tween;
 import co.uk.fluxanoia.util.Tween.TweenType;
@@ -13,30 +14,23 @@ public class Background extends Drawable {
 
 	// The image for the background
 	private BufferedImage image;
-	
 	// The values for the scale and translation for the background
 	private Tween scale;
 	
 	// Constructs the background with varying degrees of specificity
-	public Background(Display display, String path, double scale, boolean relative) {
+	public Background(BufferedImage image) {
+		this(image, 1);
+	}
+	public Background(BufferedImage image, double scale) {
 		// Construct the Drawable
 		super();
-		init(display, path, scale, relative);
-	}
-	public Background(Display display, String path, double scale) {
-		this(display, path, scale, false);
-	}
-	public Background(Display display, String path) {
-		this(display, path, 1, false);
+		// Check for null value
+		ErrorHandler.checkNull(image, "A Background was given an null image.");
+		// Initialise values
+		this.image = image;
+		this.scale = new Tween(scale);
 	}
 	
-	// Initialises the backgrounds values
-	private void init(Display display, String path, double scale, boolean relative) {
-		this.image = display.getResourceManager().getImage(path);
-		this.scale = new Tween(scale);
-		if (relative) this.setRelativeScale(scale);
-	}
-
 	// Updates the background
 	public void update() {
 		scale.update();
@@ -72,30 +66,14 @@ public class Background extends Drawable {
 	
 	// Moves both scales
 	public void moveScale(TweenType tweenType, double end, int duration, int hold) {
+		ErrorHandler.checkNull(tweenType, "A Background was given a null tween type.");
 		this.scale.move(tweenType, end, duration, hold);
 	}
 	
 	// Pushes both scales
 	public void pushScale(TweenType tweenType, double end, int duration, int hold) {
+		ErrorHandler.checkNull(tweenType, "A Background was given a null tween type.");
 		this.scale.push(tweenType, end, duration, hold);
-	}
-	
-	// Sets both scales
-	public void setRelativeScale(double s) {
-		s *= ((double) Main.DRAW_WIDTH / (double) image.getWidth());
-		this.setScale(s);
-	}
-	
-	// Moves both scales
-	public void moveRelativeScale(TweenType tweenType, double end, int duration, int hold) {
-		end *= ((double) Main.DRAW_WIDTH / (double) image.getWidth());
-		this.moveScale(tweenType, end, duration, hold);
-	}
-	
-	// Pushes both scales
-	public void pushRelativeScale(TweenType tweenType, double end, int duration, int hold) {
-		end *= ((double) Main.DRAW_WIDTH / (double) image.getWidth());
-		this.pushScale(tweenType, end, duration, hold);
 	}
 	
 	// Whether both scales have arrived

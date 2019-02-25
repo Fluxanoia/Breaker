@@ -4,10 +4,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -46,8 +43,17 @@ public class ResourceManager {
 
 	// Returns the mp3 file at the path, loading it if not available
 	public MediaPlayer getMP3(String path) {
+		ErrorHandler.checkNull(path, "The ResourceManager was given a null path (String).");
+		Media m = null;
 		if (tracks.get(path) == null) {
-			Media m = new Media(new File(path).toURI().toString());
+			try {
+				m = new Media(new File(path).toURI().toString());
+			} catch (Exception e) {
+				System.err.println("The media at path: " + path + ", could not be read.");
+				e.printStackTrace();
+				System.exit(1);
+			}
+			ErrorHandler.checkNull(m, "The media at path: " + path + ", could not be read.");
 			tracks.put(path, new MediaPlayer(m));
 		}
 		return tracks.get(path);
@@ -57,19 +63,22 @@ public class ResourceManager {
 
 	// Returns the image at the path, loading it if not available
 	public BufferedImage getImage(String path) {
+		ErrorHandler.checkNull(path, "The ResourceManager was given a null path (String).");
 		// Checks if the path is already in the map
 		if (images.get(path) == null) {
 			// Load the image if it's not here
+			BufferedImage image = null;
 			try {
 				// Load the image from a stream
-				images.put(path, ImageIO.read(new File(path)));
+				image = ImageIO.read(new File(path));
 			} catch (Exception e) {
 				// If an error occurs, print the error and close
-				System.err.println("Image could not be loaded at: " + path);
-				System.err.println("Stack trace:");
+				System.err.println("The image at path: " + path + ", could not be read.");
 				e.printStackTrace();
 				System.exit(1);
 			}
+			ErrorHandler.checkNull(image, "The image at path: " + path + ", could not be read.");
+			images.put(path, image);
 		}
 		// Return the image at the path
 		return images.get(path);
@@ -80,7 +89,6 @@ public class ResourceManager {
 			BufferedImage empty, int x, int y, int size) {
 		return ResourceManager.getTile(tileset, empty, x, y, size, size);
 	}
-
 	public static BufferedImage getTile(BufferedImage tileset,
 			BufferedImage empty, int x, int y, int width, int height) {
 		try {
@@ -94,6 +102,7 @@ public class ResourceManager {
 
 	// Reads in a file in lines to an array
 	public static ArrayList<String> readFile(String path) {
+		ErrorHandler.checkNull(path, "The ResourceManager was given a null path (String).");
 		// Get the jar path and attach the ending
 		File file = new File(getPath() + path);
 		// Prepare the array
@@ -105,9 +114,10 @@ public class ResourceManager {
 				strings.add(sc.nextLine());
 			}
 			sc.close();
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
+			System.err.println("The file at path: " + path + ", could not be read.");
 			e.printStackTrace();
-			return null;
+			System.exit(1);
 		}
 		// Return
 		return strings;
@@ -115,6 +125,8 @@ public class ResourceManager {
 
 	// Read the value after the first key in a file
 	public static String readValue(String path, String key) {
+		ErrorHandler.checkNull(path, "The ResourceManager was given a null path (String).");
+		ErrorHandler.checkNull(key, "The ResourceManager was given a null key.");
 		// Get the jar path and attach the ending
 		File file = new File(getPath() + path);
 		// Prepare a split array
@@ -130,14 +142,20 @@ public class ResourceManager {
 				}
 			}
 			sc.close();
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) {
+			System.err.println("The value at key: " + key + ", in the file at path: " 
+		        + path + ", could not be read.");
 			e.printStackTrace();
+			System.exit(1);
 		}
 		return null;
 	}
 
 	// Edits the values at the first key in a file, returning true for success
 	public static boolean editValue(String path, String key, String value) {
+		ErrorHandler.checkNull(path, "The ResourceManager was given a null path (String).");
+		ErrorHandler.checkNull(key, "The ResourceManager was given a null key.");
+		ErrorHandler.checkNull(value, "The ResourceManager was given a null value.");
 		// Prepare variables for tracking
 		int line = 0;
 		String[] split = null;
@@ -159,16 +177,20 @@ public class ResourceManager {
 	}
 
 	// Copies a file
-	public static boolean copyFile(String src, String dest) {
+	public static void copyFile(String src, String dest) {
+		ErrorHandler.checkNull(src, "The ResourceManager was given a null source path.");
+		ErrorHandler.checkNull(dest, "The ResourceManager was given a null destination path.");
 		// Read in the origin file
 		ArrayList<String> strings = readFile(src);
 		// Overwrite the file to change
-		return overwriteFile(dest, strings);
+		overwriteFile(dest, strings);
 	}
 
 	// Overwrites a file
-	public static boolean overwriteFile(String path,
+	public static void overwriteFile(String path,
 			ArrayList<String> strings) {
+		ErrorHandler.checkNull(path, "The ResourceManager was given a null path (String).");
+		ErrorHandler.checkNull(strings, "The ResourceManager was given a null arraylist of strings.");
 		// Get the file
 		File file = new File(getPath() + path);
 		// Write to the file
@@ -182,28 +204,30 @@ public class ResourceManager {
 				bw.newLine();
 			}
 			bw.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
+			System.err.println("The file at path: " + path + ", could not be overwritten.");
 			e.printStackTrace();
-			return false;
+			System.exit(1);
 		}
-		return true;
 	}
 
 	// Creates a file, returning true if created
-	public static boolean createFile(String path, ArrayList<String> strings) {
+	public static void createFile(String path, ArrayList<String> strings) {
+		ErrorHandler.checkNull(path, "The ResourceManager was given a null path (String).");
+		ErrorHandler.checkNull(strings, "The ResourceManager was given a null arraylist of strings.");
 		// Create the file referencing the location
 		File file = new File(getPath() + path);
 		// If it doesn't exist, overwrite, otherwise return
 		if (!file.exists()) {
 			try {
 				file.createNewFile();
-			} catch (IOException e) {
-				System.out.println(
-						"File at: " + path + ", could not be created.");
-				return false;
+			} catch (Exception e) {
+				System.err.println("The file at path: " + path + ", could not be created.");
+				e.printStackTrace();
+				System.exit(1);
 			}
 		}
-		return overwriteFile(path, strings);
+		overwriteFile(path, strings);
 	}
 
 	// Gets the path of the file
@@ -213,9 +237,12 @@ public class ResourceManager {
 					.getCodeSource().getLocation().toURI().getPath())
 							.getParentFile().getPath()
 					+ "\\";
-		} catch (URISyntaxException e) {
-			return "null";
+		} catch (Exception e) {
+			System.err.println("The running directory of the program could not be found.");
+			e.printStackTrace();
+			System.exit(1);
 		}
+		return "null path (String)";
 	}
 
 }

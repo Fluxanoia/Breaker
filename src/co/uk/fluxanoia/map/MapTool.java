@@ -1,6 +1,7 @@
 package co.uk.fluxanoia.map;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -8,9 +9,16 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import javax.swing.JEditorPane;
+import javax.swing.JFrame;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+
 import com.sun.glass.events.KeyEvent;
 
 import co.uk.fluxanoia.graphics.Display;
+import co.uk.fluxanoia.graphics.GridBackground;
+import co.uk.fluxanoia.main.ErrorHandler;
 import co.uk.fluxanoia.main.GameMode;
 import co.uk.fluxanoia.main.Main;
 import co.uk.fluxanoia.main.ResourceManager;
@@ -31,23 +39,11 @@ public class MapTool extends GameMode {
 	private static final int FONT_SIZE = 12;
 	// The text buffer size
 	private static final int TEXT_BUFFER = 3;
-	// The help text
-	private static final String[] HELP = { 
-			"Camera movement:",
-			"    WASD        - move the camera",
-			"    SCROLL      - zoom in and out",
-			"Cell management:",
-			"    LEFT CLICK  - places a new cell",
-			"    LEFT SHIFT  - deletes a cell",
-			"    Q           - switches the cell type",
-			"    E           - sets the cell data of cells to be placed",
-			"    SPACE       - places a new cell (can overwrite)",
-			"File management:",
-			"    F (file)    - writes the current map to a file",
-			"    R (read)    - reads a map in from a file"};
 
 	// The text querying class
 	private TextQuery dataQuery, saveQuery, readQuery;
+	// The information compiling window
+	private JFrame documentation;
 	// The current tile type index
 	private int cellType;
 	// The current data
@@ -72,6 +68,8 @@ public class MapTool extends GameMode {
 	private Display display;
 	// The camera
 	private Camera camera;
+	// The dummy terrain
+	private Terrain terrain;
 	// Whether the map tool is closed or not
 	private boolean closed;
 	// The tileset and empty texture
@@ -82,6 +80,8 @@ public class MapTool extends GameMode {
 	// Constructs a MapTool
 	public MapTool(Display display) {
 		super(display);
+		// Check for null values
+		ErrorHandler.checkNull(display, "The MapTool was given a null display.");
 		// Initialise values
 		this.zoom = 1;
 		this.cellType = 0;
@@ -96,6 +96,7 @@ public class MapTool extends GameMode {
 		this.notifyMessage = "";
 		this.notifyTween = new Tween(0);
 		this.camera = new Camera(0, 0, Main.DRAW_WIDTH, Main.DRAW_HEIGHT);
+		this.terrain = new Terrain(display, camera, new GridBackground(0, 0, 0, 0));
 		hovered_x = hovered_y = 0;
 		// Assign values
 		this.display = display;
@@ -103,6 +104,8 @@ public class MapTool extends GameMode {
 		this.cells = new ArrayList<>();
 		this.empty = display.getResourceManager().getImage("res\\game\\empty.png");
 		this.tileset = display.getResourceManager().getImage("res\\game\\tileset.png");
+		// Set up the documentation window
+		this.compileDocumentation();
 	}
 
 	// Updates the map tool
@@ -123,9 +126,8 @@ public class MapTool extends GameMode {
 		if (dataQuery.dropCancelled()) dataQuery.hide();
 		// Saving
 		if (saveQuery.dropPressed()) {
-			if (saveToFile()) {
-				notify("Saved to " + saveQuery.getText() + ".level");
-			}
+			saveToFile();
+			notify("Saved to " + saveQuery.getText() + ".level");
 			saveQuery.clear();
 			saveQuery.hide();
 		}
@@ -136,7 +138,7 @@ public class MapTool extends GameMode {
 		// Reading
 		if (readQuery.dropPressed()) {
 			ArrayList<Cell> input = new ArrayList<>();
-			redraw |= readFile(input, display, null, "res\\stages\\" + readQuery.getText() + ".level");
+			redraw |= readFile(input, display, terrain, "res\\stages\\" + readQuery.getText() + ".level");
 			if (input != null) {
 				cells = input;
 				notify("Read the file " + readQuery.getText() + ".level");
@@ -228,16 +230,6 @@ public class MapTool extends GameMode {
 		// Draw the data and type
 		g1.drawString("Type: " + CellType.values()[cellType].getName(), TEXT_BUFFER, FONT_SIZE);
 		g1.drawString("Data: " + heldData, TEXT_BUFFER, FONT_SIZE * 2);
-		// Draw help text
-		if (display_help) {
-			for (int i = 0; i < HELP.length; i++) {
-				g1.drawString(HELP[HELP.length - (i + 1)], 
-						TEXT_BUFFER, 
-						Main.DRAW_HEIGHT - i * FONT_SIZE - TEXT_BUFFER);
-			}
-		} else {
-			g1.drawString("Press H to display help", TEXT_BUFFER, Main.DRAW_HEIGHT - TEXT_BUFFER);
-		}
 		// Draw the notification
 		if (notifyTween.value() != 0) {
 			g1.setColor(new Color(0, 0, 0, (int) notifyTween.value()));
@@ -267,7 +259,7 @@ public class MapTool extends GameMode {
 				/ (double) Terrain.GRID_SIZE);
 		// Manage mouse presses
 		if (this.display.getListener().isMouseHeld(MouseEvent.BUTTON1)) {
-			redraw |= addCell(cells, display, null, hovered_x, hovered_y, CellType.values()[cellType], heldData);
+			redraw |= addCell(cells, display, terrain, hovered_x, hovered_y, CellType.values()[cellType], heldData);
 		}
 		// Manages key presses
 		// Displaying help
@@ -299,6 +291,20 @@ public class MapTool extends GameMode {
 			if (c != null) cells.remove(c);
 			redraw = true;
 		}
+		// Copying cells
+		if (this.display.getListener().isKeyHeld(KeyEvent.VK_C)) {
+			Cell c = getCell(hovered_x, hovered_y);
+			if (c != null) {
+				CellType[] cts = CellType.values();
+				for (int i = 0; i < cts.length; i++)
+					if (cts[i] == c.getCellType()) {
+						cellType = i;
+						break;
+					}
+				heldData = c.getData();
+				redraw = true;
+			}
+		}
 		// Setting type
 		if (this.display.getListener().isKeyReleased(KeyEvent.VK_Q)) {
 			cellType++;
@@ -307,14 +313,14 @@ public class MapTool extends GameMode {
 		}
 		// Setting data
 		if (this.display.getListener().isKeyReleased(KeyEvent.VK_E)) {
-			dataQuery.clear();
+			dataQuery.setText(heldData);
 			dataQuery.show();
 		}
 		// Editting data/type
 		if (this.display.getListener().isKeyHeld(KeyEvent.VK_SPACE)) {
 			Cell c = getCell(hovered_x, hovered_y);
 			if (c != null) cells.remove(c);
-			addCell(cells, display, null, hovered_x, hovered_y, CellType.values()[cellType], heldData);
+			addCell(cells, display, terrain, hovered_x, hovered_y, CellType.values()[cellType], heldData);
 			redraw = true;
 		}
 		// Write to file
@@ -328,10 +334,9 @@ public class MapTool extends GameMode {
 	}
 
 	// Saves the cells to a file
-	public boolean saveToFile() {
+	public void saveToFile() {
 		// If there's no file name, stop
-		if (saveQuery.getText().equals(""))
-			return false;
+		if (saveQuery.getText().equals("")) return;
 		// Initialise some variables
 		String s = "";
 		// For all the cells in cells...
@@ -342,11 +347,15 @@ public class MapTool extends GameMode {
 		ArrayList<String> ss = new ArrayList<>();
 		ss.add(s);
 		// Write to file
-		return ResourceManager.overwriteFile("res\\stages\\" + saveQuery.getText() + ".level", ss);
+		ResourceManager.overwriteFile("res\\stages\\" + saveQuery.getText() + ".level", ss);
 	}
 
 	// Reads in a level file and converts it to an array of cells
 	public static boolean readFile(ArrayList<Cell> cells, Display display, Terrain terrain, String path) {
+		ErrorHandler.checkNull(cells, "The MapTool was given a null set of cells.");
+		ErrorHandler.checkNull(display, "The MapTool was given a null display.");
+		ErrorHandler.checkNull(terrain, "The MapTool was given a null terrain.");
+		ErrorHandler.checkNull(path, "The MapTool was given a null path.");
 		// Variables to hold the cell data
 		int x, y;
 		String data;
@@ -390,6 +399,11 @@ public class MapTool extends GameMode {
 
 	// Adds a new cell
 	private static boolean addCell(ArrayList<Cell> cells, Display display, Terrain terrain, int x, int y, CellType type, String heldData) {
+		ErrorHandler.checkNull(cells, "The MapTool was given a null set of cells.");
+		ErrorHandler.checkNull(display, "The MapTool was given a null display.");
+		ErrorHandler.checkNull(terrain, "The MapTool was given a null terrain.");
+		ErrorHandler.checkNull(type, "The MapTool was given a null cell type.");
+		ErrorHandler.checkNull(heldData, "The MapTool was given a null path.");
 		if (getCell(cells, x, y) != null) return false;
 		switch (type) {
 		case TILE:
@@ -411,12 +425,47 @@ public class MapTool extends GameMode {
 		return true;
 	}
 	
+	// Compiles the documentation window
+	private void compileDocumentation() {
+		documentation = new JFrame("Map editing documentation");
+		JTabbedPane tabs = new JTabbedPane(JTabbedPane.LEFT);
+		JEditorPane jep;
+		// Add the key bindings
+		jep = getTextInfo("res\\info\\usage.html");
+		tabs.addTab("Usage", new JScrollPane(jep));
+		// Add the entity info
+		jep = getTextInfo("res\\info\\entity.html");
+		tabs.addTab("Entity", new JScrollPane(jep));
+		// Add cell info
+		CellType[] cts = CellType.values();
+		for (int i = 0; i < cts.length; i++) {
+			jep = getTextInfo("res\\info\\" + cts[i].getID() + ".html");
+			tabs.addTab(cts[i].getName(), new JScrollPane(jep));
+		}
+		// Compile
+		documentation.add(tabs);
+		documentation.setPreferredSize(new Dimension(300, 500));
+		documentation.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		documentation.pack();
+		documentation.setVisible(true);
+	}
+	
+	// Fills a text area from a file
+	private JEditorPane getTextInfo(String path) {
+		ErrorHandler.checkNull(path, "The MapTool was given a null path.");
+		ArrayList<String> in = ResourceManager.readFile(path);
+		String out = "";
+		for (String s : in) out += s + "\n";
+		return new JEditorPane("text/html", out);
+	}
+	
 	// Returns the cell with position x, y
 	private Cell getCell(int x, int y) {
 		return getCell(cells, x, y);
 	}
 	// Returns the cell with position x, y in a given cell array
 	private static Cell getCell(ArrayList<Cell> cells, int x, int y) {
+		ErrorHandler.checkNull(cells, "The MapTool was given a null set of cells.");
 		for (Cell c : cells) {
 			if (c.getCellX() == x && c.getCellY() == y)
 				return c;
@@ -426,6 +475,7 @@ public class MapTool extends GameMode {
 	
 	// Sets up a new notifying message
 	private void notify(String notify) {
+		ErrorHandler.checkNull(notify, "The MapTool was given a null string.");
 		notifyTween.set(255);
 		notifyTween.move(TweenType.LINEAR, 0, 60, 120);
 		notifyMessage = notify;

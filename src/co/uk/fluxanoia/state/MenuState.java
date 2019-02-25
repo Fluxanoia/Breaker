@@ -1,9 +1,13 @@
 package co.uk.fluxanoia.state;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.util.Random;
 
 import co.uk.fluxanoia.graphics.Background;
 import co.uk.fluxanoia.graphics.Display;
+import co.uk.fluxanoia.graphics.FloatingImage;
 import co.uk.fluxanoia.graphics.GridBackground;
 import co.uk.fluxanoia.main.Main;
 import co.uk.fluxanoia.main.ResourceManager;
@@ -15,7 +19,7 @@ import co.uk.fluxanoia.util.Tween.TweenType;
 public class MenuState extends State {
 
 	// The scale of the pushed out foreground
-	private final double FORE_OUT_SCALE = 1.75;
+	public static final double FORE_OUT_SCALE = 1.75;
 
 	// The states of the menu
 	private enum Phase {
@@ -46,6 +50,8 @@ public class MenuState extends State {
 	private ButtonManager[] buttonManagers;
 	// The background of the menu
 	private Background fore;
+	// The title
+	private FloatingImage title;
 
 	// The state that will be changed to when the transition ends
 	private StateType pending;
@@ -70,8 +76,13 @@ public class MenuState extends State {
 		// Adds the buttons
 		this.addButtons();
 		// Initialises values
-		fore = new Background(display, "res\\menu\\background_fore.png", 1, true);
+		fore = new Background(
+				display.getResourceManager().getImage("res\\menu\\background_fore.png"));
+		title = new FloatingImage(
+				display.getResourceManager().getImage("res\\sprites\\title.png"),
+				-Main.DRAW_WIDTH / 2, 100, 1, 1, 0);
 		// Add the backgrounds to the layer
+		this.addComponent(Layer.MD, title);
 		this.addComponent(Layer.FG, fore);
 	}
 
@@ -84,6 +95,7 @@ public class MenuState extends State {
 		gbg.getOpacity().set(0);
 
 		switchPhase(Phase.MAIN, 0, 40);
+		fore.setScale(1);
 		gbg.getOpacity().move(TweenType.EASE_OUT, 1, 60, 0);
 	}
 
@@ -105,6 +117,8 @@ public class MenuState extends State {
 		}
 		// Update the foreground
 		fore.update();
+		// Update the title
+		title.update();
 		// Update the button manager
 		for (int i = 0; i < buttonManagers.length; i++) buttonManagers[i].update();
 		// Take and iterate through the button queue of the button manager
@@ -136,9 +150,7 @@ public class MenuState extends State {
 			case HELP:
 				pressOnHelp(i);
 				break;
-
-				default:
-					return;
+			default: return;
 		}
 		// If the pending state has changed, move the
 		if (pending != null) {
@@ -153,15 +165,12 @@ public class MenuState extends State {
 		switch (i) {
 			case 0:
 				switchPhase(Phase.LEVEL, 30, 40);
-				fore.pushRelativeScale(TweenType.EASE_OUT, FORE_OUT_SCALE, 20, 0);
 				break;
 			case 1:
 				switchPhase(Phase.OPTIONS, 30, 40);
-				fore.pushRelativeScale(TweenType.EASE_OUT, FORE_OUT_SCALE, 20, 0);
 				break;
 			case 2:
 				switchPhase(Phase.HELP, 30, 40);
-				fore.pushRelativeScale(TweenType.EASE_OUT, FORE_OUT_SCALE, 20, 0);
 				break;
 			case 3:
 				this.getStateManager().changeState(StateType.CLOSE);
@@ -174,12 +183,12 @@ public class MenuState extends State {
 		switch (i) {
 			case 0:
 				switchPhase(Phase.MAIN, 30, 40);
-				fore.pushRelativeScale(TweenType.EASE_OUT, 1, 20, 0);
 				break;
 			default:
 				getStateManager().setPassID(i);
 				exitPhase(phase, 60);
-				this.getStateManager().getGridBG().getOpacity().move(TweenType.EASE_OUT, 0, 60, 0);
+				this.getStateManager().getGridBG().getOpacity()
+					.move(TweenType.EASE_OUT, 0, 60, 0);
 				pending = StateType.LEVEL_STATE;
 				pending_wait = 60;
 				break;
@@ -191,7 +200,6 @@ public class MenuState extends State {
 		switch (i) {
 			default:
 				switchPhase(Phase.MAIN, 30, 40);
-				fore.pushRelativeScale(TweenType.EASE_OUT, 1, 20, 0);
 				break;
 		}
 	}
@@ -201,7 +209,6 @@ public class MenuState extends State {
 		switch (i) {
 			default:
 				switchPhase(Phase.MAIN, 30, 40);
-				fore.pushRelativeScale(TweenType.EASE_OUT, 1, 20, 0);
 				break;
 		}
 	}
@@ -228,6 +235,18 @@ public class MenuState extends State {
 		// Go to the case of the current phase
 		switch (p) {
 			case MAIN:
+				fore.pushScale(TweenType.EASE_OUT, 1, 20, 0);
+				title.getTweenRotation().set(-30 + (new Random().nextDouble()) * 60);
+				title.getTweenRotation().move(TweenType.ELASTIC,
+						0, 
+						130, 0);
+				title.getTweenY().set((new Random().nextDouble()) * 200);
+				title.getTweenY().move(TweenType.ELASTIC,
+						100, 
+						120, 0);
+				title.getTweenX().move(TweenType.ELASTIC,
+						Main.DRAW_WIDTH / 2, 
+						145, 0);
 				tweens = buttonManagers[p.getID()].getXTweens();
 				start = -3 * (Main.DRAW_WIDTH / 4);
 				holds = new int[tweens.length];
@@ -281,6 +300,10 @@ public class MenuState extends State {
 		// Go to the case of the current phase
 		switch (p) {
 			case MAIN:
+				fore.pushScale(TweenType.EASE_OUT, FORE_OUT_SCALE, 35, 0);
+				title.getTweenX().move(TweenType.EASE_OUT,
+						-Main.DRAW_WIDTH / 2, 
+						15, 0);
 				tweens = buttonManagers[p.getID()].getYTweens();
 				end = -Main.DRAW_HEIGHT;
 				holds = new int[tweens.length];

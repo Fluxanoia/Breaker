@@ -1,5 +1,13 @@
 # Breaker
 
+## Fonts
+
+Used in game title:
+Hang the DJ by:
+Jakob Fischer
+jakob@pizzadude.dk
+www.pizzadude.dk
+
 ## Sprites
 
 Courtesy of John Colburn, usage terms detailed on the website below:
